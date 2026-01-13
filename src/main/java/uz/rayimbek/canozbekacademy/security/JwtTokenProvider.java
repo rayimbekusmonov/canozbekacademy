@@ -24,110 +24,81 @@ public class JwtTokenProvider {
             @Value("${app.jwt.expiration}") long jwtExpirationMs,
             @Value("${app.jwt.refresh-expiration}") long refreshExpirationMs
     ) {
+        // Yangi versiyada kalitni yaratish
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.jwtExpirationMs = jwtExpirationMs;
         this.refreshExpirationMs = refreshExpirationMs;
     }
 
-    /**
-     * Generate access token
-     */
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return generateToken(userPrincipal.getId(), userPrincipal.getEmail(), false);
     }
 
-    /**
-     * Generate access token from user ID and email
-     */
     public String generateToken(Long userId, String email) {
         return generateToken(userId, email, false);
     }
 
-    /**
-     * Generate refresh token
-     */
     public String generateRefreshToken(Long userId, String email) {
         return generateToken(userId, email, true);
     }
 
-    /**
-     * Generate token (access or refresh)
-     */
     private String generateToken(Long userId, String email, boolean isRefresh) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + (isRefresh ? refreshExpirationMs : jwtExpirationMs));
 
+        // 0.12.x versiyasida builder metodlari o'zgargan:
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .subject(String.valueOf(userId)) // setSubject -> subject
                 .claim("email", email)
                 .claim("type", isRefresh ? "refresh" : "access")
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .issuedAt(now) // setIssuedAt -> issuedAt
+                .expiration(expiryDate) // setExpiration -> expiration
+                .signWith(key) // Algoritm avtomatik aniqlanadi
                 .compact();
     }
 
-    /**
-     * Get user ID from JWT token
-     */
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        // parserBuilder() o'rniga parser(), setSigningKey o'rniga verifyWith()
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token) // parseClaimsJws -> parseSignedClaims
+                .getPayload(); // getBody -> getPayload
 
         return Long.parseLong(claims.getSubject());
     }
 
-    /**
-     * Get email from JWT token
-     */
     public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.get("email", String.class);
     }
 
-    /**
-     * Validate JWT token
-     */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return true;
-        } catch (SecurityException ex) {
-            log.error("Invalid JWT signature");
-        } catch (MalformedJwtException ex) {
-            log.error("Invalid JWT token");
-        } catch (ExpiredJwtException ex) {
-            log.error("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            log.error("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            log.error("JWT claims string is empty");
+        } catch (JwtException | IllegalArgumentException ex) {
+            log.error("JWT xatosi: {}", ex.getMessage());
         }
         return false;
     }
 
-    /**
-     * Check if token is refresh token
-     */
     public boolean isRefreshToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
 
             String type = claims.get("type", String.class);
             return "refresh".equals(type);
@@ -136,15 +107,12 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Get expiration date from token
-     */
     public Date getExpirationFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.getExpiration();
     }
