@@ -1,0 +1,13 @@
+# Backend .dockerignore
+target/
+!target/*.jar
+.mvn/
+mvnw
+mvnw.cmd
+*.log
+*.logs
+.git/
+.gitignore
+README.md
+.env
+.env.local
