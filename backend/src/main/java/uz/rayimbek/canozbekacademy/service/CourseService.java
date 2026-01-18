@@ -264,6 +264,8 @@ public class CourseService {
                 .durationWeeks(course.getDurationWeeks())
                 .totalLessons(course.getTotalLessons())
                 .teacherName(course.getTeacher().getFullName())
+                .teacherAvatar(course.getTeacher().getAvatarUrl()) // User entity'dan olyapmiz
+                .teacherSpecialization("Master Instructor") // Buni keyinchalik User modeliga qo'shish mumkin
                 .teacherId(course.getTeacher().getId())
                 .rating(course.getRating())
                 .totalStudents(course.getTotalStudents())

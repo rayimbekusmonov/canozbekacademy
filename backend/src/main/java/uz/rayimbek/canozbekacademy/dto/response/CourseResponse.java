@@ -32,4 +32,7 @@ public class CourseResponse {
     private Integer totalReviews;
     private Boolean isPublished;
     private LocalDateTime createdAt;
+    private String teacherAvatar;
+    private String teacherSpecialization;
+    private Double averageRating;
 }
