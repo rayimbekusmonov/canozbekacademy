@@ -6,7 +6,8 @@ import {Badge} from './ui/badge';
 import {Textarea} from './ui/textarea';
 import {Progress} from './ui/progress';
 // @ts-ignore
-import {getDashboardData, submitHomework, DashboardData, Lesson} from '../services/dashboardService';
+import { getDashboardData, submitHomework } from '../../services/dashboardService';
+import type { DashboardData, Lesson } from '../../services/dashboardService';
 
 interface LearningDashboardProps {
     courseId: number;
@@ -42,8 +43,15 @@ export function LearningDashboard({courseId}: LearningDashboardProps) {
         fetchDashboard();
     }, [courseId]);
 
-    const handleLessonClick = (lesson: Lesson) => {
+    const handleLessonClick = (lesson: {
+        id: { toString: () => React.Key };
+        locked: boolean;
+        completed: any;
+        title: unknown;
+        duration: unknown
+    }) => {
         if (!lesson.locked) {
+            // @ts-ignore
             setSelectedLesson(lesson);
             setHomeworkSubmitted(false);
             setHomeworkText('');

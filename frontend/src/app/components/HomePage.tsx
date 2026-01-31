@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 // @ts-ignore
-import { getCourses, CourseResponse } from '../services/courseService';
+import { getCourses, CourseResponse } from '../../services/courseService';
 // @ts-ignore
 import { ImageWithFallback } from './ImageWithFallback';
 
