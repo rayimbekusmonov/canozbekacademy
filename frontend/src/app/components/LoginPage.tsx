@@ -1,10 +1,10 @@
-// src/components/LoginPage.tsx
 import { useState } from 'react';
 import { Mail, Lock, Loader2, GraduationCap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 // @ts-ignore
 import { login } from '../../services/authService';
+
 interface LoginPageProps {
     onNavigate: (page: string) => void;
 }
@@ -19,9 +19,22 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         e.preventDefault();
         try {
             setLoading(true);
-            await login({ email, password });
-            onNavigate('home');
+
+            // 1. Backenddan response ni olamiz
+            const response = await login({ email, password });
+
+            // 2. Ma'lumotlarni saqlaymiz
+            // Eslatma: Backend javobida 'token' va 'role' (yoki 'userRole') bo'lishi kerak
+            if (response && response.token) {
+                localStorage.setItem('accessToken', response.token);
+
+                // pgAdmin orqali bergan rolingiz shu yerda saqlanadi
+                localStorage.setItem('userRole', response.role || 'STUDENT');
+
+                onNavigate('home');
+            }
         } catch (error) {
+            console.error("Login xatosi:", error);
             alert("Email yoki parol xato!");
         } finally {
             setLoading(false);
@@ -43,6 +56,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                         </button>
                     </p>
                 </div>
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div className="relative">

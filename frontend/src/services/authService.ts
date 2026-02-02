@@ -2,6 +2,9 @@
 import api from './api';
 
 export interface AuthResponse {
+    token: string;
+    role: string;
+    email?: string;
     accessToken: string;
     refreshToken: string;
     user: {
